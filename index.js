@@ -1,26 +1,87 @@
 const qr = require("qrcode");
 
-let data = {
-  code: "your sample data here",
-};
+let value = "Sample";
+let start = 0;
+let end = 100;
+let isEncrypted = true;
 
-let stJson = JSON.stringify(data);
+for (var i = start; i < end; i++) {
+  var data = value;
+  if (isEncrypted) {
+    data = encryptMessage(value + pad(i), i);
+  }
+  //uncomment the function that you need to run.
+  generateQRToFile(data, i);
+  //   generateQRToBase64(data);
+  //   generateQRToString(data);
+}
 
-//uncomment the block of code that you need to run.
+//encrypts qr value
+function encryptMessage(message) {
+  var output = "";
 
-//generates QR to terminal
-// qr.toString(stJson, { type: "terminal" }, function (err, code) {
-//   if (err) return console.log("Error: " + err);
-//   console.log(code);
-// });
+  for (var i = 0; i < message.length; i++) {
+    var ch = message.charAt(i);
+    var asc = ch.charCodeAt(0);
 
-//generates QR in base64 format
-// qr.toDataURL(stJson, function (err, code) {
-//   if (err) return console.log("Error: " + err);
-//   console.log(code);
-// });
+    if (asc % 2 == 0) {
+      asc = (asc + 7) % 126;
+    } else {
+      asc = asc < 7 ? 119 + asc : asc - 7;
+    }
+
+    output += String.fromCharCode(asc);
+  }
+
+  return output;
+}
 
 //generates QR into png file
-qr.toFile("qr.png", stJson, function (err) {
-  if (err) return console.log("Error: " + err);
-});
+function generateQRToFile(count, data) {
+  qr.toFile(
+    count + ".png",
+    data,
+    {
+      width: 300,
+    },
+    function (err) {
+      if (err) return console.log("Error: " + err);
+    }
+  );
+}
+
+//generates QR in base64 format
+function generateQRToBase64(data) {
+  qr.toDataURL(data, function (err, code) {
+    if (err) return console.log("Error: " + err);
+    console.log(code);
+  });
+}
+
+//generates QR to terminal
+function generateQRToString(data) {
+  qr.toString(data, { type: "terminal" }, function (err, code) {
+    if (err) return console.log("Error: " + err);
+    console.log(code);
+  });
+}
+
+//used for testing encrypted value
+function decryptMessage(message) {
+  var output = "";
+
+  for (var i = 0; i < message.length; i++) {
+    var ch = message[i];
+    var asc = ch.charCodeAt(0);
+
+    if (asc % 2 == 0) {
+      asc = (asc + 7) % 126;
+    } else {
+      asc = asc < 7 ? 119 + asc : asc - 7;
+    }
+
+    output += String.fromCharCode(asc);
+  }
+
+  return output;
+}
